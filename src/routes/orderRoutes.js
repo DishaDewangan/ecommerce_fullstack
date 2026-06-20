@@ -1,23 +1,32 @@
 const express = require("express");
 
+const {
+  createOrderHandler,
+  getAllOrdersHandler,
+  getOrderByIdHandler,
+  getOrdersByUserIdHandler,
+  updateOrderHandler,
+  deleteOrderHandler,
+} = require("../handlers/orderHandler");
+
 const router = express.Router();
 
-const orderHandler =
-require("../handlers/orderHandler");
+// Create Order
+router.post("/", createOrderHandler);
 
-router.get("/",
-orderHandler.getOrders);
+// Get All Orders
+router.get("/", getAllOrdersHandler);
 
-router.post("/",
-orderHandler.createOrder);
+// Get Orders By User Id
+router.get("/user/:userId", getOrdersByUserIdHandler);
 
-router.get("/details/all",
-orderHandler.getOrderDetails);
+// Get Order By Id
+router.get("/:id", getOrderByIdHandler);
 
-router.put("/:id",
-orderHandler.updateOrder);
+// Update Order
+router.put("/:id", updateOrderHandler);
 
-router.delete("/:id",
-orderHandler.deleteOrder);
+// Delete Order
+router.delete("/:id", deleteOrderHandler);
 
 module.exports = router;

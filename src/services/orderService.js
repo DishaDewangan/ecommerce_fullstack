@@ -1,71 +1,123 @@
-const orders =
-require("../models/orderModel");
+const {
+  createOrder,
+  getAllOrders,
+  getOrderById,
+  getOrdersByUserId,
+  updateOrder,
+  deleteOrder,
+} = require("../models/orderModel");
+const { getProductById, updateProduct } = require("../models/productModel");
 
-const users =
-require("../models/userModel");
+/**
+ * orderData expected shape:
+ * {
+ *   userId: string,
+ *   items: [{ productId: string, quantity: number }],
+ *   shippingAddress?: string,
+ * }
+ */
+const createOrderService = async (orderData) => {
+  if (!orderData.userId) {
+    throw new Error("User ID is required");
+  }
 
-const products =
-require("../models/productModel");
+  if (!orderData.items || !Array.isArray(orderData.items) || orderData.items.length === 0) {
+    throw new Error("At least one product with quantity is required");
+  }
 
-const getOrders = () => orders;
+  // Validate items and compute total
+  let totalAmount = 0
+  const populatedItems = []
 
-const createOrder = (order) =>
-    orders.push(order);
+  for (const it of orderData.items) {
+    const { productId, quantity } = it
+    const qty = parseInt(quantity, 10) || 0
 
-const getOrderDetails = () => {
+    if (!productId) throw new Error('productId is required for each item')
+    if (qty <= 0) throw new Error('Quantity must be at least 1 for each item')
 
-    return orders.map(order => {
+    const product = await getProductById(productId)
+    if (!product) throw new Error(`Product not found: ${productId}`)
 
-        const user = users.find(
-            u => u.id == order.userId
-        );
+    const available = parseInt(product.quantity || 0, 10)
+    if (available < qty) throw new Error(`Insufficient stock for product ${product.name}. Available: ${available}, requested: ${qty}`)
 
-        const product = products.find(
-            p => p.id == order.productId
-        );
+    const price = parseFloat(product.price || 0)
+    totalAmount += price * qty
 
-        return {
-            orderId: order.id,
-            customer: user?.name,
-            product: product?.name,
-            quantity: order.quantity,
-            totalPrice:
-                product?.price * order.quantity
-        };
-    });
+    populatedItems.push({
+      productId,
+      name: product.name,
+      price,
+      quantity: qty,
+    })
+  }
+
+  if (totalAmount < 0) throw new Error('Total amount must be positive')
+
+  // Create order
+  const orderPayload = {
+    userId: orderData.userId,
+    items: populatedItems,
+    totalAmount,
+    status: orderData.status || 'pending',
+    shippingAddress: orderData.shippingAddress || '',
+    createdAt: new Date(),
+  }
+
+  const result = await createOrder(orderPayload)
+
+  // Decrement stock for each product (best-effort; not transactional)
+  for (const it of populatedItems) {
+    const product = await getProductById(it.productId)
+    const newQty = Math.max(0, (parseInt(product.quantity || 0, 10) - it.quantity))
+    await updateProduct(it.productId, { quantity: newQty })
+  }
+
+  return result
+}
+
+const getAllOrdersService = async () => {
+  return await getAllOrders();
 };
 
-const updateOrder = (id, data) => {
+const getOrderByIdService = async (id) => {
+  if (!id) {
+    throw new Error("Order id is required");
+  }
 
-    const order = orders.find(
-        o => o.id == id
-    );
-
-    if (!order) return null;
-
-    order.quantity =
-        data.quantity || order.quantity;
-
-    return order;
+  return await getOrderById(id);
 };
 
-const deleteOrder = (id) => {
+const getOrdersByUserIdService = async (userId) => {
+  if (!userId) {
+    throw new Error("User id is required");
+  }
 
-    const index = orders.findIndex(
-        o => o.id == id
-    );
+  return await getOrdersByUserId(userId);
+};
 
-    if (index === -1) return false;
+const updateOrderService = async (id, orderData) => {
+  if (!id) {
+    throw new Error("Order id is required");
+  }
 
-    orders.splice(index, 1);
+  return await updateOrder(id, orderData);
+};
 
-    return true;
+const deleteOrderService = async (id) => {
+  if (!id) {
+    throw new Error("Order id is required");
+  }
+
+  return await deleteOrder(id);
 };
 
 module.exports = {
-    getOrders,
-    createOrder,
-    getOrderDetails,
-    updateOrder,
-    deleteOrder
+  createOrderService,
+  getAllOrdersService,
+  getOrderByIdService,
+  getOrdersByUserIdService,
+  updateOrderService,
+  deleteOrderService,
 };

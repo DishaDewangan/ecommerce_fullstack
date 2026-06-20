@@ -1,48 +1,71 @@
-const products =
-require("../models/productModel");
+const {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+} = require("../models/productModel");
 
-const getProducts = () => products;
+const createProductService = async (productData) => {
+  if (!productData.name) {
+    throw new Error("Product name is required");
+  }
 
-const getProductById = (id) =>
-    products.find(p => p.id == id);
+  if (!productData.price) {
+    throw new Error("Price is required");
+  }
 
-const createProduct = (product) =>
-    products.push(product);
+  if (productData.price < 0) {
+    throw new Error("Price must be positive");
+  }
 
-const updateProduct = (id, data) => {
-
-    const product = products.find(
-        p => p.id == id
-    );
-
-    if (!product) return null;
-
-    product.name =
-        data.name || product.name;
-
-    product.price =
-        data.price || product.price;
-
-    return product;
+  return await createProduct(productData);
 };
 
-const deleteProduct = (id) => {
+const getAllProductsService = async () => {
+  return await getAllProducts();
+};
 
-    const index = products.findIndex(
-        p => p.id == id
-    );
+const getProductByIdService = async (id) => {
+  if (!id) {
+    throw new Error("Product id is required");
+  }
 
-    if (index === -1) return false;
+  return await getProductById(id);
+};
 
-    products.splice(index, 1);
+const updateProductService = async (id, productData) => {
+  if (!id) {
+    throw new Error("Product id is required");
+  }
 
-    return true;
+  if (!productData.name) {
+    throw new Error("Product name is required");
+  }
+
+  if (!productData.price) {
+    throw new Error("Price is required");
+  }
+
+  if (productData.price < 0) {
+    throw new Error("Price must be positive");
+  }
+
+  return await updateProduct(id, productData);
+};
+
+const deleteProductService = async (id) => {
+  if (!id) {
+    throw new Error("Product id is required");
+  }
+
+  return await deleteProduct(id);
 };
 
 module.exports = {
-    getProducts,
-    getProductById,
-    createProduct,
-    updateProduct,
-    deleteProduct
+  createProductService,
+  getAllProductsService,
+  getProductByIdService,
+  updateProductService,
+  deleteProductService,
 };

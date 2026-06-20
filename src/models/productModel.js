@@ -1,34 +1,49 @@
-let products = [
-    {
-        id: 101,
-        name: "iPhone 16",
-        price: 80000
-    },
-    {
-        id: 102,
-        name: "Samsung S25",
-        price: 70000
-    },
-    {
-        id: 103,
-        name: "MacBook Air M4",
-        price: 120000
-    },
-    {
-        id: 104,
-        name: "iPad Pro",
-        price: 90000
-    },
-    {
-        id: 105,
-        name: "Sony Headphones",
-        price: 15000
-    },
-    {
-        id: 106,
-        name: "Apple Watch",
-        price: 45000
-    }
-];
+const { ObjectId } = require("mongodb");
+const { getDB } = require("../config/db");
 
-module.exports = products;
+const productCollection = () => {
+  const db = getDB();
+  return db.collection("products");
+};
+
+// Create Product
+const createProduct = async (productData) => {
+  return await productCollection().insertOne(productData);
+};
+
+// Get All Products
+const getAllProducts = async () => {
+  return await productCollection().find({}).toArray();
+};
+
+// Get Product By Id
+const getProductById = async (id) => {
+  return await productCollection().findOne({
+    _id: new ObjectId(id),
+  });
+};
+
+// Update Product
+const updateProduct = async (id, productData) => {
+  return await productCollection().updateOne(
+    { _id: new ObjectId(id) },
+    {
+      $set: productData,
+    }
+  );
+};
+
+// Delete Product
+const deleteProduct = async (id) => {
+  return await productCollection().deleteOne({
+    _id: new ObjectId(id),
+  });
+};
+
+module.exports = {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+};

@@ -1,22 +1,28 @@
 const express = require("express");
 
+const {
+  createUserHandler,
+  getAllUsersHandler,
+  getUserByIdHandler,
+  updateUserHandler,
+  deleteUserHandler,
+} = require("../handlers/userHandler");
+
 const router = express.Router();
 
-const userHandler =
-require("../handlers/userHandler");
+// Create User
+router.post("/", createUserHandler);
 
-router.get("/", userHandler.getUsers);
+// Get All Users
+router.get("/", getAllUsersHandler);
 
-router.get("/:id",
-userHandler.getUserById);
+// Get User By Id
+router.get("/:id", getUserByIdHandler);
 
-router.post("/",
-userHandler.createUser);
+// Update User
+router.put("/:id", updateUserHandler);
 
-router.put("/:id",
-userHandler.updateUser);
-
-router.delete("/:id",
-userHandler.deleteUser);
+// Delete User
+router.delete("/:id", deleteUserHandler);
 
 module.exports = router;

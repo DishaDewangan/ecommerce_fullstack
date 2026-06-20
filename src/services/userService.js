@@ -1,44 +1,63 @@
-const users = require("../models/userModel");
+const {
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+} = require("../models/userModel");
 
-const getUsers = () => users;
+const createUserService = async (userData) => {
+  if (!userData.name) {
+    throw new Error("Name is required");
+  }
 
-const getUserById = (id) =>
-    users.find(u => u.id == id);
+  if (!userData.email) {
+    throw new Error("Email is required");
+  }
 
-const createUser = (user) =>
-    users.push(user);
-
-const updateUser = (id, data) => {
-
-    const user = users.find(
-        u => u.id == id
-    );
-
-    if (!user) return null;
-
-    user.name = data.name || user.name;
-    user.email = data.email || user.email;
-
-    return user;
+  return await createUser(userData);
 };
 
-const deleteUser = (id) => {
+const getAllUsersService = async () => {
+  return await getAllUsers();
+};
 
-    const index = users.findIndex(
-        u => u.id == id
-    );
+const getUserByIdService = async (id) => {
+  if (!id) {
+    throw new Error("User id is required");
+  }
 
-    if (index === -1) return false;
+  return await getUserById(id);
+};
 
-    users.splice(index, 1);
+const updateUserService = async (id, userData) => {
+  if (!id) {
+    throw new Error("User id is required");
+  }
 
-    return true;
+  if (!userData.name) {
+    throw new Error("Name is required");
+  }
+
+  if (!userData.email) {
+    throw new Error("Email is required");
+  }
+
+  return await updateUser(id, userData);
+};
+
+const deleteUserService = async (id) => {
+  if (!id) {
+    throw new Error("User id is required");
+  }
+
+  return await deleteUser(id);
 };
 
 module.exports = {
-    getUsers,
-    getUserById,
-    createUser,
-    updateUser,
-    deleteUser
+  createUserService,
+  getAllUsersService,
+  getUserByIdService,
+  updateUserService,
+  deleteUserService,
 };
